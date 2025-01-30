@@ -93,7 +93,7 @@
     "react-native-get-random-values": "^1.11.0",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-google-places-autocomplete": "^2.1.1",
-    "react-native-maps": "1.10.0",
+    "react-native-maps": "1.15.6",
     "react-native-maps-directions": "^1.9.0",
     "react-native-material-ripple": "^0.9.1",
     "react-native-material-textfield": "^0.16.1",
