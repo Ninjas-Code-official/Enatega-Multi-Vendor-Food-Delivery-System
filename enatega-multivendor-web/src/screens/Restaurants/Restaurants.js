@@ -189,6 +189,16 @@ function Restaurants() {
           </Grid>
         </Box>
       ) : null}
+
+      <Box style={{ width: "100%", minHeight: "100vh" }}>
+        <RestaurantGrid
+          checkCart={checkCart}
+          restaurants={search ? searchRestaurants(search) : restaurants}
+          showMessage={showMessage}
+          search={search}
+        />
+      </Box>
+
       {restaurantSections.length < 1 ? null : (
         <Box className={classes.topRestContainer}>
           <Box className={classes.topRestWrapper}>
@@ -203,14 +213,6 @@ function Restaurants() {
         </Box>
       )}
 
-      <Box style={{ width: "100%", minHeight: "100vh" }}>
-        <RestaurantGrid
-          checkCart={checkCart}
-          restaurants={search ? searchRestaurants(search) : restaurants}
-          showMessage={showMessage}
-          search={search}
-        />
-      </Box>
       <Box className={classes.footerContainer}>
         <Box className={classes.footerWrapper}>
           <Footer />
