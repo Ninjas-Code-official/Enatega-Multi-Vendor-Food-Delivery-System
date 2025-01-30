@@ -80,7 +80,7 @@ const Withdraw = () => {
                 textColor={
                   error ? colors.textErrorColor : colors.fontSecondColor
                 }>
-                {error || t('enteramount')}
+                {amount ? '' : (error || t('enteramount'))}
               </TextDefault>
             </View>
             <View style={styles.btnView}>
