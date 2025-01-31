@@ -36,6 +36,7 @@
     "react-dom": "^18",
     "react-geocode": "^0.2.2",
     "react-international-phone": "^4.3.0",
+    "subscriptions-transport-ws": "^0.11.0",
     "tailwind-merge": "^2.5.2",
     "yup": "^1.4.0"
   },

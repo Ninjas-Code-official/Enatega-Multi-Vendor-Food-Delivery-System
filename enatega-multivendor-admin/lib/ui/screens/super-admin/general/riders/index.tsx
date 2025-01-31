@@ -7,7 +7,6 @@ import RiderHeader from '@/lib/ui/screen-components/protected/super-admin/riders
 import RidersMain from '@/lib/ui/screen-components/protected/super-admin/riders/view/main';
 
 // Interfaces and Types
-
 import { IRiderResponse } from '@/lib/utils/interfaces/rider.interface';
 
 export default function RidersScreen() {

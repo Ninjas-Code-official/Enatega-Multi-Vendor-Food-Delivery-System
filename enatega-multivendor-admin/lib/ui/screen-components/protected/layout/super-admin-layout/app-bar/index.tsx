@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-
 'use client';
 
 // Core
@@ -14,6 +13,7 @@ import {
   useTransition,
 } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Icons
 import {
@@ -25,8 +25,8 @@ import {
   faRightFromBracket,
   faBars,
   faGlobe,
+  faFaceFrown,
 } from '@fortawesome/free-solid-svg-icons';
-// import { AppLogo } from '@/lib/utils/assets/svgs/logo';
 
 // UI Components
 import TextIconClickable from '@/lib/ui/useable-components/text-icon-clickable';
@@ -34,6 +34,7 @@ import CustomDialog from '@/lib/ui/useable-components/delete-dialog';
 
 // Prime Reat
 import { Menu } from 'primereact/menu';
+import { Skeleton } from 'primereact/skeleton';
 
 // Layout
 import { LayoutContext } from '@/lib/context/global/layout.context';
@@ -43,6 +44,7 @@ import { useUserContext } from '@/lib/hooks/useUser';
 
 // Interface/Types
 import { LayoutContextProps } from '@/lib/utils/interfaces';
+import { IWebNotification } from '@/lib/utils/interfaces/notification.interface';
 
 // Constants
 import {
@@ -54,6 +56,7 @@ import {
 
 // Methods
 import { onUseLocalStorage } from '@/lib/utils/methods';
+import { timeAgo } from '@/lib/utils/methods/timeAgo';
 
 // Styles
 import classes from './app-bar.module.css';
@@ -62,10 +65,20 @@ import { useLocale, useTranslations } from 'next-intl';
 import { TLocale } from '@/lib/utils/types/locale';
 import { setUserLocale } from '@/lib/utils/methods/locale';
 
+// GraphQL
+import { useMutation, useQuery, useSubscription } from '@apollo/client';
+import { RIDER_UPDATED_SUBSCRIPTION } from '@/lib/api/graphql/subscription/rider-subscription';
+import {
+  GET_WEB_NOTIFICATIONS,
+  MARK_WEB_NOTIFICATIONS_AS_READ,
+} from '@/lib/api/graphql';
+
 const AppTopbar = () => {
   // States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNtfnOpen, setIsNtfnOpen] = useState(false);
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false); // New state for the modal
+  const [notifications, setNotifications] = useState<IWebNotification[]>([]);
 
   // Hooks
   const t = useTranslations();
@@ -77,6 +90,7 @@ const AppTopbar = () => {
   // Ref
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<Menu>(null);
+  const ntfnDropdownRef = useRef<HTMLDivElement>(null);
   const languageMenuRef = useRef<Menu>(null);
 
   // Context
@@ -84,7 +98,37 @@ const AppTopbar = () => {
     useContext<LayoutContextProps>(LayoutContext);
   const { user, setUser } = useUserContext();
 
+  // Query
+  const { loading, refetch } = useQuery(GET_WEB_NOTIFICATIONS, {
+    fetchPolicy: 'network-only',
+    onCompleted: (data) => {
+      setNotifications(data?.webNotifications);
+    },
+  });
+
+  // Subscriptions
+  useSubscription(RIDER_UPDATED_SUBSCRIPTION, {
+    fetchPolicy: 'network-only',
+    onData: async () => {
+      const result = await refetch();
+      setNotifications(result?.data?.webNotifications);
+    },
+  });
+
+  // Mutation
+  const [markAllAsRead] = useMutation(MARK_WEB_NOTIFICATIONS_AS_READ, {
+    refetchQueries: [{ query: GET_WEB_NOTIFICATIONS }],
+    onCompleted: (data) => {
+      setNotifications(data?.markWebNotificationsAsRead);
+    },
+  });
+
   // Handlers
+  const toggleDropdown = () => {
+    markAllAsRead();
+    setIsNtfnOpen(!isNtfnOpen);
+  };
+
   const onDevicePixelRatioChange = useCallback(() => {
     setIsMenuOpen(false);
     showSuperAdminSidebar(false);
@@ -97,13 +141,11 @@ const AppTopbar = () => {
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    // Check if the clicked target is outside the container
     if (
       containerRef.current &&
       !containerRef.current.contains(event.target as Node)
     ) {
       setIsMenuOpen(false);
-      // Close the container or handle the click outside
     }
   };
 
@@ -112,7 +154,6 @@ const AppTopbar = () => {
   };
 
   const onConfirmLogout = () => {
-    // Proceed with logout
     setUser(null);
     onUseLocalStorage('delete', SELECTED_VENDOR);
     onUseLocalStorage('delete', SELECTED_VENDOR_EMAIL);
@@ -130,18 +171,36 @@ const AppTopbar = () => {
 
   // Use Effects
   useEffect(() => {
-    // Listening to mouse down event
     document.addEventListener('mousedown', handleClickOutside);
-
-    // Listen to window resize events
     window.addEventListener('resize', onDevicePixelRatioChange);
 
     return () => {
-      // Cleanup listener on component unmount
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', onDevicePixelRatioChange);
     };
   }, [onDevicePixelRatioChange]);
+
+  useEffect(() => {
+    const ntfnClickOutside = (event: MouseEvent) => {
+      // Close the dropdown if the click is outside the dropdown
+      if (
+        ntfnDropdownRef.current &&
+        !ntfnDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsNtfnOpen(false);
+      }
+    };
+
+    if (isNtfnOpen) {
+      document.addEventListener('mousedown', ntfnClickOutside);
+    } else {
+      document.removeEventListener('mousedown', ntfnClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', ntfnClickOutside);
+    };
+  }, [isNtfnOpen]);
 
   return (
     <div className={`${classes['layout-topbar']}`}>
@@ -184,13 +243,75 @@ const AppTopbar = () => {
             onClick={() => onRedirectToPage('/dispatch')}
           />
         )}
-        {shouldShow('Notification') && (
+        <div className="relative z-50">
           <FontAwesomeIcon
-            className="cursor-pointer"
             icon={faBell}
-            onClick={() => onRedirectToPage('/management/notifications')}
+            className="cursor-pointer text-gray-600 hover:text-black"
+            onClick={toggleDropdown}
           />
-        )}
+          {!loading &&
+            notifications?.filter((ntfn) => !ntfn.read).length > 0 && (
+              <span className="absolute text-xs top-[-4px] right-[-8px] w-4 h-4 flex justify-center items-center rounded-full bg-red-500 text-white">
+                {notifications?.filter((ntfn) => !ntfn.read).length}
+              </span>
+            )}
+
+          {isNtfnOpen && (
+            <div
+              ref={ntfnDropdownRef}
+              className="absolute flex select-none flex-col pb-2 top-5 right-0 mt-2 w-72 bg-white shadow-xl rounded-md border"
+            >
+              <p className="select-none text-center font-medium p-2 shadow-sm">
+                Notifications
+              </p>
+
+              <ul className="flex flex-col gap-1 pt-2 overflow-y-auto max-h-[368px]">
+                {/* If loading, show skeleton loaders */}
+                {loading ? (
+                  [1, 2, 3].map((_, index) => (
+                    <div className="px-3" key={index}>
+                      <Skeleton width="100%" height="52px" className="px-2" />
+                    </div>
+                  ))
+                ) : notifications.length === 0 ? (
+                  <div className="flex p-2 gap-2 justify-center items-center">
+                    <li className="text-center text-gray-500">
+                      No notifications yet
+                    </li>
+                    <FontAwesomeIcon
+                      icon={faFaceFrown}
+                      color="gray"
+                      onClick={() =>
+                        onRedirectToPage('/management/notifications')
+                      }
+                    />
+                  </div>
+                ) : (
+                  notifications?.map((notification, index) => (
+                    <Link
+                      key={index}
+                      className={`p-2 mx-3 rounded-md text-sm cursor-pointer ${
+                        notification.read
+                          ? 'text-black'
+                          : 'text-[#484848] bg-[#d8e3a369]'
+                      } hover:bg-gray-300`}
+                      href={`${notification.navigateTo}`}
+                      onClick={() => {
+                        markAllAsRead();
+                        setIsNtfnOpen(false);
+                      }}
+                    >
+                      <p>{notification.body}</p>
+                      <p className="text-xs text-gray-400">
+                        {timeAgo(+notification.createdAt)}
+                      </p>
+                    </Link>
+                  ))
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
 
         <div className="hidden items-center space-x-3 md:flex">
           <div

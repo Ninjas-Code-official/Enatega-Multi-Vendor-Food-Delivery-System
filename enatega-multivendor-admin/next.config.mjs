@@ -50,6 +50,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 't4.ftcdn.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'static.vecteezy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn-icons-png.flaticon.com',
+      },
     ], // Add placehold.co as an allowed domain
   },
 };

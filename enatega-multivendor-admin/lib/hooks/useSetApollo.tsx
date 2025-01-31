@@ -11,12 +11,12 @@ import {
   Operation,
   split,
 } from '@apollo/client';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 
 // GraphQL related imports
 import { DefinitionNode } from 'graphql';
-import { createClient } from 'graphql-ws';
+import { WebSocketLink } from '@apollo/client/link/ws';
 
 // Utility imports
 import { Subscription } from 'zen-observable-ts';
@@ -31,19 +31,9 @@ export const useSetupApollo = (): ApolloClient<NormalizedCacheObject> => {
     uri: `${SERVER_URL}graphql`,
   });
 
-  //   const wsLink = new WebSocketLink({
-  //     uri: `${WS_SERVER_URL}graphql`,
-  //     options: {
-  //       reconnect: true,
-  //     },
-  //   });
-
-  const wsLink = new GraphQLWsLink(
-    createClient({
-      url: `${WS_SERVER_URL}graphql`,
-      connectionParams: {
-        reconnect: true,
-      },
+  const wsLink = new WebSocketLink(
+    new SubscriptionClient(`${WS_SERVER_URL}graphql`, {
+      reconnect: true,
     })
   );
 

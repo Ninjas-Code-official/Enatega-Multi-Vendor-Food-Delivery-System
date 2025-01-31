@@ -30,3 +30,17 @@ export interface INotificationHeaderProps {
 export interface IGetNotifications {
   notifications: INotification[];
 }
+
+export interface IWebNotification {
+  __typename: 'WebNotification';
+  _id: string;
+  body: string;
+  navigateTo: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+// Define the structure of the query result object
+export interface INotificationsDataResponse {
+  webNotifications: IWebNotification[];
+}

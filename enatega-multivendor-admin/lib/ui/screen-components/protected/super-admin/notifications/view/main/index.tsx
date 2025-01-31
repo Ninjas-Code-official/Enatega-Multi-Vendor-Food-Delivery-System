@@ -13,12 +13,12 @@ import { generateDummyNotifications } from '@/lib/utils/dummy';
 import { NOTIFICATIONS_TABLE_COLUMNS } from '@/lib/ui/useable-components/table/columns/notification-columns';
 
 // GraphQL
-import { GET_NOTIFICATIONS } from '@/lib/api/graphql';
 
 // Interfaces
 import { IQueryResult } from '@/lib/utils/interfaces';
 import { IGetNotifications } from '@/lib/utils/interfaces/notification.interface';
 import { useQueryGQL } from '@/lib/hooks/useQueryQL';
+import { GET_NOTIFICATIONS } from '@/lib/api/graphql';
 
 export default function NotificationMain() {
   const { data: notificationData, loading: notificationLoading } = useQueryGQL(

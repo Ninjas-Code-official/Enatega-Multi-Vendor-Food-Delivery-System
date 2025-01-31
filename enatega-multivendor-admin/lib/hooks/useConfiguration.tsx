@@ -152,6 +152,6 @@ export const useConfiguration = () => {
     AMPLITUDE_API_KEY_APP,
 
     // IS PAID VERSION
-    ISPAID_VERSION
+    ISPAID_VERSION,
   };
 };

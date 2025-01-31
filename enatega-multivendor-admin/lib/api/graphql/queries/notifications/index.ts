@@ -10,3 +10,15 @@ export const GET_NOTIFICATIONS = gql`
     }
   }
 `;
+
+export const GET_WEB_NOTIFICATIONS = gql`
+  query GetWebNotifications {
+    webNotifications {
+      _id
+      body
+      navigateTo
+      read
+      createdAt
+    }
+  }
+`;

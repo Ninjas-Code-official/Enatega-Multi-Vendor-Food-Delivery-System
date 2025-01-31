@@ -18,10 +18,38 @@ export const GET_RIDERS = gql`
   }
 `;
 
-export const GET_RIDERS_L = gql`
-  query riders {
-    riders {
+export const GET_RIDER = gql`
+  query Rider($id: String!) {
+    rider(id: $id) {
       _id
+      name
+      username
+      password
+      phone
+      available
+      assigned
+      zone {
+        _id
+        title
+      }
+      bussinessDetails {
+        bankName
+        accountName
+        accountCode
+        accountNumber
+        bussinessRegNo
+        companyRegNo
+        taxRate
+      }
+      licenseDetails {
+        number
+        expiryDate
+        image
+      }
+      vehicleDetails {
+        number
+        image
+      }
     }
   }
 `;
